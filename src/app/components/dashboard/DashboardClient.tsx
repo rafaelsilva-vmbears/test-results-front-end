@@ -1,7 +1,7 @@
 "use client";
 
-import { Box, Flex, Grid, GridItem, Heading, Text, Icon, Badge } from "@chakra-ui/react";
-import { MdAnalytics } from "react-icons/md";
+import { Box, Flex, Grid, GridItem, Heading, Text, Icon, Badge, Button } from "@chakra-ui/react";
+import { MdAnalytics, MdDownload, MdPictureAsPdf } from "react-icons/md";
 import type { MetricsSummary, ExecutionListItem, FlakyTestSummary, ModuleHealthSummary, CommonErrorSummary } from "@domain/test-results/types";
 import { DashboardFilters as DashboardFiltersType, DashboardData } from "@application/use-cases/GetDashboardDataUseCase";
 
@@ -18,7 +18,6 @@ import { SlowestTestsTable } from "./SlowestTestsTable";
 import { DashboardFilters } from "./DashboardFilters";
 import { SummaryCards } from "./SummaryCards";
 import StabilityAnalysis from "./StabilityAnalysis";
-import { DailyTrendsChart } from "./DailyTrendsChart";
 
 interface DashboardClientProps {
   filters: DashboardFiltersType;
@@ -50,10 +49,51 @@ export default function DashboardClient({
   trends
 }: DashboardClientProps) {
 
+  const handleDownloadAiReport = () => {
+    const aiReport = {
+      metadata: {
+        generated_at: new Date().toISOString(),
+        project: filters.project || "all",
+        environment: filters.environment || "all",
+      },
+      summary: summaryToRender,
+      stability: {
+        flaky_tests: flakyTests,
+        module_health: moduleHealth,
+        common_errors: commonErrors
+      },
+      performance: performanceMetrics,
+      mttr: mttr,
+      recent_failures: dashboardData.failures
+    };
+
+    const blob = new Blob([JSON.stringify(aiReport, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `ai-analysis-report-${filters.project || 'all'}-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <Box>
-      {/* Header */}
-      <Flex align="center" mb={10} justify="space-between" flexWrap="wrap" gap={4}>
+      {/* Header para Impressão (Oculto na tela normal) */}
+      <Box display="none" sx={{ '@media print': { display: 'block', mb: 8, pb: 4, borderBottom: '2px solid', borderColor: 'gray.200' } }}>
+        <Heading size="lg" color="gray.800" mb={2}>Relatório Executivo de Testes</Heading>
+        <Flex gap={6}>
+          <Text color="gray.600"><b>Projeto:</b> {filters.project || 'Todos'}</Text>
+          <Text color="gray.600"><b>Ambiente:</b> {filters.environment || 'Todos'}</Text>
+        </Flex>
+        {filters.startDate && filters.endDate && (
+          <Text color="gray.600" mt={1}><b>Período:</b> {filters.startDate} a {filters.endDate}</Text>
+        )}
+      </Box>
+
+      {/* Header da Tela Normal (Oculto na impressão) */}
+      <Flex sx={{ '@media print': { display: 'none' } }} align="center" mb={10} justify="space-between" flexWrap="wrap" gap={4}>
         <Flex align="center">
           <Flex
             w={12}
@@ -74,10 +114,37 @@ export default function DashboardClient({
           </Box>
         </Flex>
 
+        {filters.project && (
+          <Flex gap={3}>
+            <Button 
+              leftIcon={<MdPictureAsPdf />}
+              colorScheme="gray" 
+              variant="outline" 
+              onClick={() => window.print()}
+              boxShadow="sm"
+              _hover={{ bg: "gray.50" }}
+            >
+              Exportar PDF
+            </Button>
+            <Button 
+              leftIcon={<MdDownload />}
+              colorScheme="blue" 
+              variant="solid" 
+              onClick={handleDownloadAiReport}
+              boxShadow="md"
+              _hover={{ transform: "translateY(-2px)", boxShadow: "lg" }}
+              transition="all 0.2s"
+            >
+              Exportar JSON
+            </Button>
+          </Flex>
+        )}
       </Flex>
 
-      {/* Filters Area */}
-      <DashboardFilters currentFilters={filters} projectManagementData={projectManagementData} />
+      {/* Filters Area (Oculto na impressão) */}
+      <Box sx={{ '@media print': { display: 'none' } }}>
+        <DashboardFilters currentFilters={filters} projectManagementData={projectManagementData} />
+      </Box>
 
       {!filters.project ? (
         <Box textAlign="center" py={20} bg="white" borderRadius="xl" border="1px" borderColor="gray.200" mt={10}>
@@ -98,22 +165,19 @@ export default function DashboardClient({
           />
 
           <Grid templateColumns="1fr" gap={8} mb={8}>
-            <GridItem>
+            <GridItem sx={{ '@media print': { breakInside: 'avoid' } }}>
               <TestDistributionChart data={testDistributionData} />
             </GridItem>
-            <GridItem>
+            <GridItem sx={{ '@media print': { breakInside: 'avoid' } }}>
               <TestStatusOverTimeChart executions={executions} />
             </GridItem>
-            {trends && trends.length > 0 && (
-              <GridItem>
-                <DailyTrendsChart trends={trends} />
-              </GridItem>
-            )}
           </Grid>
 
-          <StabilityAnalysis flakyTests={flakyTests} moduleHealth={moduleHealth} />
+          <Box sx={{ '@media print': { breakInside: 'avoid' } }}>
+            <StabilityAnalysis flakyTests={flakyTests} moduleHealth={moduleHealth} />
+          </Box>
 
-          <Box mt={10}>
+          <Box mt={10} sx={{ '@media print': { breakInside: 'avoid', pageBreakBefore: 'always' } }}>
             <CommonErrorsTable errors={commonErrors || []} />
           </Box>
 

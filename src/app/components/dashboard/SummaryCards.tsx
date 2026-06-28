@@ -40,12 +40,18 @@ export function SummaryCards({ summary, mttr, performanceMetrics }: SummaryCards
       ? "yellow.500"
       : "red.500";
 
+  const avgTestsPerRun = summary.total_runs > 0 ? summary.total_tests / summary.total_runs : 0;
+  const failureRate = avgTestsPerRun > 0 ? (summary.avg_failures / avgTestsPerRun) * 100 : 0;
+  const skippedRate = summary.avg_skipped != null && avgTestsPerRun > 0 
+    ? (summary.avg_skipped / avgTestsPerRun) * 100 
+    : (summary.avg_skipped == null ? null : 0);
+
   const cards = [
     { title: "Total de Execuções", value: formatInteger(summary.total_runs), desc: "Execuções no período", icon: MdAccessTime, color: "blue.500" },
     { title: "Total de Testes", value: formatInteger(summary.total_tests), desc: "Testes executados no total", icon: MdCheckCircleOutline, color: "blue.500" },
     { title: "Taxa de Sucesso (Média)", value: formatPercentage(summary.avg_pass_rate), desc: "Média de aprovação no período", icon: MdTrendingUp, color: passRateColor },
-    { title: "Média de Falhas", value: formatInteger(summary.avg_failures), desc: "Por execução no período", icon: MdErrorOutline, color: "red.500" },
-    { title: "Média de Ignorados", value: formatInteger(summary.avg_skipped), desc: "Por execução no período", icon: MdRemoveCircleOutline, color: "gray.500" },
+    { title: "Taxa de Falhas (Média)", value: formatPercentage(failureRate), desc: `Média de ~${Math.round(summary.avg_failures)} testes/exec.`, icon: MdErrorOutline, color: "red.500" },
+    { title: "Taxa de Ignorados (Média)", value: formatPercentage(skippedRate), desc: summary.avg_skipped != null ? `Média de ~${Math.round(summary.avg_skipped)} testes/exec.` : "N/A", icon: MdRemoveCircleOutline, color: "gray.500" },
   ];
   
   if (mttr && mttr.mttr_hours > 0) {
@@ -84,7 +90,12 @@ export function SummaryCards({ summary, mttr, performanceMetrics }: SummaryCards
   cards.push({ title: "Última Execução", value: `#${summary.last_run_number}`, desc: lastExecutionDate, icon: MdAccessTime, color: "blue.500" });
 
   return (
-    <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)", lg: "repeat(4, 1fr)" }} gap={6} mb={8}>
+    <Grid 
+      templateColumns={{ base: "1fr", md: "repeat(2, 1fr)", lg: "repeat(4, 1fr)" }} 
+      sx={{ '@media print': { gridTemplateColumns: 'repeat(3, 1fr) !important' } }}
+      gap={6} 
+      mb={8}
+    >
       {cards.map((card, i) => (
         <GridItem key={i}>
           <Box p={5} bg="white" borderRadius="xl" boxShadow="sm" border="1px" borderColor="gray.100" transition="all 0.2s" _hover={{ transform: "translateY(-2px)", boxShadow: "md" }}>

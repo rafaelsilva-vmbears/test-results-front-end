@@ -13,9 +13,15 @@ export default function DashboardLayout({
   const pathname = usePathname();
 
   return (
-    <Flex h="100vh" bg="gray.50" overflow="hidden">
+    <Flex 
+      h="100vh" 
+      bg="gray.50" 
+      overflow="hidden"
+      sx={{ '@media print': { display: 'block', height: 'auto', overflow: 'visible', bg: 'white' } }}
+    >
       {/* Premium Sidebar */}
       <Box
+        sx={{ '@media print': { display: 'none' } }}
         w="280px"
         bg="white"
         borderRight="1px"
@@ -108,6 +114,7 @@ export default function DashboardLayout({
         overflowY="auto"
         bg="gray.50"
         position="relative"
+        sx={{ '@media print': { overflowY: 'visible', display: 'block', bg: 'white' } }}
       >
         <Box
           position="absolute"
@@ -118,7 +125,7 @@ export default function DashboardLayout({
           bgGradient="radial(ellipse at top, blue.50, transparent)"
           pointerEvents="none"
         />
-        <Box p="10" maxW="7xl" mx="auto" position="relative" zIndex={1}>
+        <Box p="10" maxW="7xl" mx="auto" position="relative" zIndex={1} sx={{ '@media print': { p: 0, maxW: '100%' } }}>
           {children}
         </Box>
       </Box>

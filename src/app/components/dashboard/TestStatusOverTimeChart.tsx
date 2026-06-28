@@ -2,7 +2,7 @@
 
 import { Box, Flex, Heading, Text, Icon } from "@chakra-ui/react";
 import { MdTimeline, MdCheckCircleOutline } from "react-icons/md";
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LabelList, Legend } from "recharts";
 import type { ExecutionListItem } from "@domain/test-results/types";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -61,25 +61,12 @@ export function TestStatusOverTimeChart({ executions }: TestStatusOverTimeChartP
 
       <Box h="320px" w="full">
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-            <defs>
-              <linearGradient id="colorPassed" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="var(--chakra-colors-green-400)" stopOpacity={0.8} />
-                <stop offset="95%" stopColor="var(--chakra-colors-green-400)" stopOpacity={0} />
-              </linearGradient>
-              <linearGradient id="colorFailed" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="var(--chakra-colors-red-400)" stopOpacity={0.8} />
-                <stop offset="95%" stopColor="var(--chakra-colors-red-400)" stopOpacity={0} />
-              </linearGradient>
-              <linearGradient id="colorSkipped" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="var(--chakra-colors-gray-400)" stopOpacity={0.8} />
-                <stop offset="95%" stopColor="var(--chakra-colors-gray-400)" stopOpacity={0} />
-              </linearGradient>
-            </defs>
-            <XAxis dataKey="name" tick={{ fontSize: 12, fill: "var(--chakra-colors-gray-500)" }} />
-            <YAxis tick={{ fontSize: 12, fill: "var(--chakra-colors-gray-500)" }} />
+          <BarChart data={data} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
+            <XAxis dataKey="name" tick={{ fontSize: 12, fill: "var(--chakra-colors-gray-500)" }} axisLine={false} tickLine={false} dy={10} />
+            <YAxis tick={{ fontSize: 12, fill: "var(--chakra-colors-gray-500)" }} axisLine={false} tickLine={false} dx={-10} />
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--chakra-colors-gray-100)" />
             <Tooltip
+              cursor={{ fill: "var(--chakra-colors-gray-50)" }}
               content={({ active, payload, label }) => {
                 if (active && payload && payload.length) {
                   const data = payload[0].payload;
@@ -99,10 +86,17 @@ export function TestStatusOverTimeChart({ executions }: TestStatusOverTimeChartP
                 return null;
               }}
             />
-            <Area type="monotone" dataKey="passed" stackId="1" stroke="var(--chakra-colors-green-500)" fill="url(#colorPassed)" />
-            <Area type="monotone" dataKey="failed" stackId="1" stroke="var(--chakra-colors-red-500)" fill="url(#colorFailed)" />
-            <Area type="monotone" dataKey="skipped" stackId="1" stroke="var(--chakra-colors-gray-500)" fill="url(#colorSkipped)" />
-          </AreaChart>
+            <Legend wrapperStyle={{ paddingTop: "10px" }} />
+            <Bar dataKey="passed" name="Sucesso" stackId="a" fill="var(--chakra-colors-green-400)" radius={[0, 0, 4, 4]}>
+              <LabelList dataKey="passed" position="center" fill="white" fontSize={11} fontWeight="bold" formatter={(val: number) => val > 0 ? val : ''} />
+            </Bar>
+            <Bar dataKey="failed" name="Falhas" stackId="a" fill="var(--chakra-colors-red-400)">
+              <LabelList dataKey="failed" position="center" fill="white" fontSize={11} fontWeight="bold" formatter={(val: number) => val > 0 ? val : ''} />
+            </Bar>
+            <Bar dataKey="skipped" name="Ignorados" stackId="a" fill="var(--chakra-colors-gray-400)" radius={[4, 4, 0, 0]}>
+              <LabelList dataKey="skipped" position="center" fill="white" fontSize={11} fontWeight="bold" formatter={(val: number) => val > 0 ? val : ''} />
+            </Bar>
+          </BarChart>
         </ResponsiveContainer>
       </Box>
     </Box>

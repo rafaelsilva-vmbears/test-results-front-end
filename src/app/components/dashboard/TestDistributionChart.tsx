@@ -2,7 +2,7 @@
 
 import { Box, Flex, Heading, Text, Icon } from "@chakra-ui/react";
 import { MdBarChart, MdCheckCircleOutline } from "react-icons/md";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, LabelList } from "recharts";
 
 interface TestDistributionChartProps {
   data: Array<{
@@ -81,6 +81,7 @@ export function TestDistributionChart({ data }: TestDistributionChartProps) {
               }}
             />
             <Bar dataKey="value" radius={[6, 6, 0, 0]} maxBarSize={60}>
+              <LabelList dataKey="value" position="top" fill="var(--chakra-colors-gray-600)" fontSize={14} fontWeight="bold" />
               {data.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={entry.color} />
               ))}
